@@ -1,5 +1,5 @@
 import Parser
-
+-----------------------------------------------------------XML
 type XmlAttribut = (String,String)
 type XmlNom = String 
 type XmlText= String
@@ -8,7 +8,7 @@ type XmlElement= (XmlNom, [XmlAttribut])
 data XmlTree = 
    Feuille XmlText
  | Noeud XmlElement [XmlTree] deriving Show
-
+------------------------------------------------------------path
 type Element=String
 type Condition= XmlAttribut
 data Conditions= 
@@ -22,14 +22,14 @@ data Path=
   |  ElcondP ElementConditions Path deriving Show
 data XPathQuery = 
      XPQ Path   deriving Show
-
+----------------------------------------------------------------------------------parseur
 openBalise = parserChars "<"
 closedBalise = parserChars ">"
 separator = parserChars "/"
 separator2 = parserChars "="
 blanc = parserChars " \t\n"
 skipBlancs = zeroOuPlus blanc    
-
+------------------------------------------------------------------- affichege de xmltree
 showXmlNom  :: XmlNom-> String
 showXmlNom nom = nom
 
@@ -61,6 +61,12 @@ showXmlTreeList (tree:listeTree) = showXmlTree tree++"  "++(showXmlTreeList list
 showXmlTree ::XmlTree ->String
 showXmlTree (Feuille a)= showXmlText a
 showXmlTree (Noeud element sons)  = showXmlElement element ++showXmlTreeList sons++ showXmlEndElement element
+
+
+
+
+----------------------------------------------------------------------------------------parseur
+
 
 readXml1= do
     text<-caractere
@@ -130,7 +136,7 @@ readClose=do
           skipBlancs
           return txt    
 
-parseXmlTree::Parser XmlTree
+parseXmlTree::Parser XmlTree 
 parseXmlTree=do
                skipBlancs
                txt<-readXmlText1
@@ -141,7 +147,7 @@ parseXmlTree=do
                 skipBlancs
                 openBalise
                 skipBlancs
-                txt1<-readXmlText2
+                txt<-readXmlText2
                 skipBlancs
                 nomattributs<-readXmlText3
                 skipBlancs
@@ -155,16 +161,49 @@ parseXmlTree=do
                 skipBlancs
                 separator
                 txt3<-readClose
-				    --if txt3 = txt1 then 
-                return(Noeud (txt1,[(nomattributs,valattributs)]) [(txt2)]) 
-                --else fail""
+				    --if txt3 = txt then 
+                return(Noeud (txt,[(nomattributs,valattributs)]) [(txt2)]) 
+                ---else fail""
+
+              |||
+              do
+                skipBlancs
+                openBalise
+                skipBlancs
+                txt<-readXmlText2
+                skipBlancs
+                closedBalise
+                skipBlancs
+                txt2<- parseXmlTree
+                skipBlancs
+                openBalise
+                skipBlancs
+                separator
+                txt3<-readClose
+				    --if txt3 = txt then 
+                return(Noeud (txt,[("","")]) [(txt2)]) 
+                ---else fail""
+
+------------------------------------------------------path
+readCondition=do
+               txt<-caractere
+               if (txt/='@')&& (txt/= ']') && (txt/='[') then return txt else fail ""
+   
+
+lireConditions:: Parser String
+lireConditions= zeroOuPlus readCondition
+
+
+parseXpathQuery :: Parser XPathQuery
+parseXpathQuery=do
+                --skipBlancs
+                txt<-lireConditions
+                --skipBlancs
+                return (XPQ )
+                 
 
 
 
-
---parseXmlTree :: String-> Maybe XmlTree
---parseXmlTree "" = Nothing
---parseXmlTree str = Just(Feuille str)
 
       
           
@@ -182,7 +221,7 @@ parseXmlTree=do
 
 
 
-
+-----------------affichier juste feuille (Feuille "hgh")
 --test =(Noeud ("book",[("aaa","bbb")]) [(Feuille "abc")])
 --test2=(Noeud ("book",[("aaa","bbb")]) [Noeud ("book2",[("aaa","bbb")]) []])
 
